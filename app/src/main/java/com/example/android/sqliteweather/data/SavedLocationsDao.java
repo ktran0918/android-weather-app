@@ -10,7 +10,7 @@ import java.util.List;
 @Dao
 public interface SavedLocationsDao {
     @Insert
-    void insert(String location);
+    void insert(ForecastLocation forecastLocation);
 
     @Query("SELECT * FROM locations")
     LiveData<List<String>> getAllLocations();

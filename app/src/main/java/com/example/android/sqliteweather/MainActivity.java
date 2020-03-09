@@ -1,5 +1,10 @@
 package com.example.android.sqliteweather;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import android.content.Intent;
@@ -20,11 +25,12 @@ import android.widget.TextView;
 import com.example.android.sqliteweather.data.ForecastItem;
 import com.example.android.sqliteweather.data.Status;
 import com.example.android.sqliteweather.utils.OpenWeatherMapUtils;
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements ForecastAdapter.OnForecastItemClickListener, SharedPreferences.OnSharedPreferenceChangeListener {
+        implements ForecastAdapter.OnForecastItemClickListener, SharedPreferences.OnSharedPreferenceChangeListener, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -32,6 +38,7 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView mForecastItemsRV;
     private ProgressBar mLoadingIndicatorPB;
     private TextView mLoadingErrorMessageTV;
+    private DrawerLayout mDrawerLayout;
 
     private ForecastAdapter mForecastAdapter;
     private ForecastViewModel mForecastViewModel;
@@ -41,12 +48,20 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_nav_menu);
+
         // Remove shadow under action bar.
         getSupportActionBar().setElevation(0);
 
         mForecastLocationTV = findViewById(R.id.tv_forecast_location);
         mLoadingIndicatorPB = findViewById(R.id.pb_loading_indicator);
         mLoadingErrorMessageTV = findViewById(R.id.tv_loading_error_message);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
         mForecastItemsRV = findViewById(R.id.rv_forecast_items);
 
         mForecastAdapter = new ForecastAdapter(this);
@@ -123,6 +138,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
             case R.id.action_location:
                 showForecastLocationInMap();
                 return true;
@@ -133,6 +151,13 @@ public class MainActivity extends AppCompatActivity
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        mDrawerLayout.closeDrawers();
+
+        return true;
     }
 
     public void loadForecast(SharedPreferences preferences) {
