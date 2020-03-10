@@ -13,5 +13,5 @@ public interface SavedLocationsDao {
     void insert(ForecastLocation forecastLocation);
 
     @Query("SELECT * FROM locations")
-    LiveData<List<String>> getAllLocations();
+    LiveData<List<ForecastLocation>> getAllLocations();
 }
