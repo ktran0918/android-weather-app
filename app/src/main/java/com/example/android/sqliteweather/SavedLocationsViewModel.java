@@ -18,8 +18,10 @@ public class SavedLocationsViewModel extends AndroidViewModel {
         mRepository = new SavedLocationsRepository(application);
     }
 
-    public void insertSavedLocation(ForecastLocation location) {
-        mRepository.insertSavedLocation(location);
+    public void insertSavedLocation(String locationName) {
+        ForecastLocation forecastLocation = new ForecastLocation();
+        forecastLocation.location = locationName;
+        mRepository.insertSavedLocation(forecastLocation);
     }
 
 //    public void deleteSavedRepo(ForecastLocation location) {

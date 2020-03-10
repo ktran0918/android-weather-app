@@ -1,11 +1,13 @@
 package com.example.android.sqliteweather;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,7 +22,7 @@ public class SavedLocationsActivity extends AppCompatActivity implements SavedLo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_saved_locations);
+//        setContentView(R.layout.activity_saved_locations);
 
         RecyclerView savedReposRV = findViewById(R.id.rv_saved_locations);
         savedReposRV.setLayoutManager(new LinearLayoutManager(this));
@@ -43,7 +45,6 @@ public class SavedLocationsActivity extends AppCompatActivity implements SavedLo
     }
 
     @Override
-    public void onLocationClicked(ForecastLocation repo) {
-
+    public void onLocationClicked(ForecastLocation location) {
     }
 }

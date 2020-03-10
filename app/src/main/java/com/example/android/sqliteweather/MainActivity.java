@@ -16,6 +16,8 @@ import android.os.Bundle;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +25,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.android.sqliteweather.data.ForecastItem;
+import com.example.android.sqliteweather.data.ForecastLocation;
 import com.example.android.sqliteweather.data.Status;
 import com.example.android.sqliteweather.utils.OpenWeatherMapUtils;
 import com.google.android.material.navigation.NavigationView;
@@ -30,7 +33,7 @@ import com.google.android.material.navigation.NavigationView;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements ForecastAdapter.OnForecastItemClickListener, SharedPreferences.OnSharedPreferenceChangeListener, NavigationView.OnNavigationItemSelectedListener {
+        implements ForecastAdapter.OnForecastItemClickListener, SharedPreferences.OnSharedPreferenceChangeListener, SavedLocationAdapter.OnLocationClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -42,6 +45,9 @@ public class MainActivity extends AppCompatActivity
 
     private ForecastAdapter mForecastAdapter;
     private ForecastViewModel mForecastViewModel;
+    private SavedLocationsViewModel mSavedLocationsViewModel;
+    private RecyclerView mSavedLocationsRV;
+    private SavedLocationAdapter mSavedLocationAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,12 +75,20 @@ public class MainActivity extends AppCompatActivity
         mForecastItemsRV.setLayoutManager(new LinearLayoutManager(this));
         mForecastItemsRV.setHasFixedSize(true);
 
+        mSavedLocationsRV = findViewById(R.id.rv_saved_locations);
+        mSavedLocationAdapter = new SavedLocationAdapter(this);
+        mSavedLocationsRV.setAdapter(mSavedLocationAdapter);
+        mSavedLocationsRV.setLayoutManager(new LinearLayoutManager(this));
+        mSavedLocationsRV.setHasFixedSize(true);
+
         /*
          * This version of the app code uses the new ViewModel architecture to manage data for
          * the activity.  See the classes in the data package for more about how the ViewModel
          * is set up.  Here, we simply grab the forecast data ViewModel.
          */
         mForecastViewModel = new ViewModelProvider(this).get(ForecastViewModel.class);
+
+        mSavedLocationsViewModel = new ViewModelProvider(this).get(SavedLocationsViewModel.class);
 
         /*
          * Attach an Observer to the forecast data.  Whenever the forecast data changes, this
@@ -84,6 +98,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onChanged(@Nullable List<ForecastItem> forecastItems) {
                 mForecastAdapter.updateForecastItems(forecastItems);
+            }
+        });
+
+        mSavedLocationsViewModel.getAllLocations().observe(this, new Observer<List<ForecastLocation>>() {
+            @Override
+            public void onChanged(@Nullable List<ForecastLocation> forecastLocations) {
+                mSavedLocationAdapter.updateSavedLocations(forecastLocations);
             }
         });
 
@@ -114,6 +135,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         preferences.registerOnSharedPreferenceChangeListener(this);
         loadForecast(preferences);
+
     }
 
     @Override
@@ -127,6 +149,18 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(this, ForecastItemDetailActivity.class);
         intent.putExtra(OpenWeatherMapUtils.EXTRA_FORECAST_ITEM, forecastItem);
         startActivity(intent);
+    }
+
+    @Override
+    public void onLocationClicked(ForecastLocation location) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor preferencesEditor = preferences.edit();
+        preferencesEditor.putString(
+                getString(R.string.pref_location_key),
+                location.location
+        );
+        preferencesEditor.apply();
+        mDrawerLayout.closeDrawers();
     }
 
     @Override
@@ -153,12 +187,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        mDrawerLayout.closeDrawers();
-
-        return true;
-    }
+//    @Override
+//    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+//        mDrawerLayout.closeDrawers();
+//
+//        return true;
+//    }
 
     public void loadForecast(SharedPreferences preferences) {
         String location = preferences.getString(
@@ -192,5 +226,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         loadForecast(sharedPreferences);
+        mSavedLocationsViewModel.insertSavedLocation(sharedPreferences.getString(
+                getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default_value)));
     }
 }
